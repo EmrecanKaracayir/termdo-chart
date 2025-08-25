@@ -1,0 +1,71 @@
+harbor:
+  secret:
+    host: harbor.example.com
+    name: robot$termdo+robot
+    token: your_robot_account_token
+
+db:
+  image:
+    repository: termdo/db
+    tag: "1.0.0"
+  pvc:
+    storage: 5Gi
+  secret:
+    user: termdo_user
+    password: termdo_password
+    db: termdo_db
+
+authApi:
+  image:
+    repository: termdo/auth-api
+    tag: "1.0.0"
+  replicas: 1
+  hpa:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 10
+    targetCpuUtilization: 80
+  env:
+    appPort: 3001
+  secret:
+    jwt: your_auth_api_app_secret
+
+tasksApi:
+  image:
+    repository: termdo/tasks-api
+    tag: "1.0.0"
+  replicas: 1
+  hpa:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 10
+    targetCpuUtilization: 80
+  env:
+    appPort: 3002
+
+gatewayApi:
+  image:
+    repository: termdo/gateway-api
+    tag: "1.0.0"
+  replicas: 1
+  hpa:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 10
+    targetCpuUtilization: 80
+  env:
+    appPort: 3000
+    cookieIsSecure: false
+
+web:
+  image:
+    repository: termdo/web
+    tag: "1.0.0"
+  replicas: 1
+  hpa:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 10
+    targetCpuUtilization: 80
+  env:
+    appPort: 8000
