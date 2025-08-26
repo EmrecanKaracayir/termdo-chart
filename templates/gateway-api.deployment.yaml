@@ -3,7 +3,9 @@ kind: Deployment
 metadata:
   name: gateway-api-deployment
 spec:
+  {{- if not .Values.gatewayApi.hpa.enabled }}
   replicas: {{ .Values.gatewayApi.replicas }}
+  {{- end }}
   selector:
     matchLabels:
       app: gateway-api

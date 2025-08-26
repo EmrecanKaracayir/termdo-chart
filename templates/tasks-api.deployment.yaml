@@ -3,7 +3,9 @@ kind: Deployment
 metadata:
   name: tasks-api-deployment
 spec:
+  {{- if not .Values.tasksApi.hpa.enabled }}
   replicas: {{ .Values.tasksApi.replicas }}
+  {{- end }}
   selector:
     matchLabels:
       app: tasks-api
@@ -24,21 +26,21 @@ spec:
             - name: APP_PORT
               value: "{{ .Values.tasksApi.env.appPort }}"
             - name: DB_HOST
-              value: "{{ include \"termdo.componentName\" (dict \"root\" . \"component\" \"db\") }}"
+              value: db
             - name: DB_PORT
               value: "5432"
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "termdo.componentName" (dict "root" . "component" "db") }}-secret
+                  name: db-secret
                   key: POSTGRES_USER
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "termdo.componentName" (dict "root" . "component" "db") }}-secret
+                  name: db-secret
                   key: POSTGRES_PASSWORD
             - name: DB_NAME
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "termdo.componentName" (dict "root" . "component" "db") }}-secret
+                  name: db-secret
                   key: POSTGRES_DB

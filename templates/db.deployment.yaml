@@ -1,19 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "termdo.componentName" (dict "root" . "component" "db") }}
-  labels:
-    {{- include "termdo.labels" (dict "root" . "component" "db" "partOf" "termdo") | nindent 4 }}
+  name: db-deployment
 spec:
   replicas: 1
   selector:
     matchLabels:
-      {{- include "termdo.selectorLabels" (dict "root" . "component" "db") | nindent 6 }}
+      app: db
   template:
     metadata:
       labels:
-        {{- include "termdo.selectorLabels" (dict "root" . "component" "db") | nindent 8 }}
-        {{- include "termdo.labels" (dict "root" . "component" "db" "partOf" "termdo") | nindent 8 }}
+        app: db
     spec:
       imagePullSecrets:
         - name: harbor-secret
@@ -23,7 +20,7 @@ spec:
           imagePullPolicy: IfNotPresent
           envFrom:
             - secretRef:
-                name: {{ include "termdo.componentName" (dict "root" . "component" "db") }}-secret
+                name: db-secret
           ports:
             - containerPort: 5432
           volumeMounts:
@@ -32,4 +29,4 @@ spec:
       volumes:
         - name: db-data
           persistentVolumeClaim:
-            claimName: {{ include "termdo.componentName" (dict "root" . "component" "db") }}-pvc
+            claimName: db-pvc

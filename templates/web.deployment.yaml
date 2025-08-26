@@ -3,7 +3,9 @@ kind: Deployment
 metadata:
   name: web-deployment
 spec:
+  {{- if not .Values.web.hpa.enabled }}
   replicas: {{ .Values.web.replicas }}
+  {{- end }}
   selector:
     matchLabels:
       app: web

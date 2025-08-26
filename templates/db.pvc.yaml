@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ include "termdo.componentName" (dict "root" . "component" "db") }}-pvc
+  name: db-pvc
 spec:
   accessModes: ["ReadWriteOnce"]
   resources:

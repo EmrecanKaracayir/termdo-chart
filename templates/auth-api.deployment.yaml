@@ -3,7 +3,9 @@ kind: Deployment
 metadata:
   name: auth-api-deployment
 spec:
+  {{- if not .Values.authApi.hpa.enabled }}
   replicas: {{ .Values.authApi.replicas }}
+  {{- end }}
   selector:
     matchLabels:
       app: auth-api
@@ -29,21 +31,21 @@ spec:
                   name: auth-api-secret
                   key: APP_SECRET
             - name: DB_HOST
-              value: "{{ include \"termdo.componentName\" (dict \"root\" . \"component\" \"db\") }}"
+              value: db
             - name: DB_PORT
               value: "5432"
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "termdo.componentName" (dict "root" . "component" "db") }}-secret
+                  name: db-secret
                   key: POSTGRES_USER
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "termdo.componentName" (dict "root" . "component" "db") }}-secret
+                  name: db-secret
                   key: POSTGRES_PASSWORD
             - name: DB_NAME
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "termdo.componentName" (dict "root" . "component" "db") }}-secret
+                  name: db-secret
                   key: POSTGRES_DB
