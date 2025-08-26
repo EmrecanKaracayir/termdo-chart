@@ -1,18 +1,1 @@
-*
 
-# >-----< INCLUDES >-----< #
-
-# [+]: Template files
-!templates/
-!templates/**
-
-# [+]: Helm files
-!.helmignore
-!Chart.yaml
-!values.yaml
-
-# >-----< EXCLUDES >-----< #
-
-# [-]: macOS files
-.DS_Store
-**/.DS_Store
