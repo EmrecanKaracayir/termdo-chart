@@ -1,0 +1,20 @@
+{{- if .Values.authApi.hpa.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: auth-api-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: auth-api-deployment
+  minReplicas: {{ .Values.authApi.hpa.minReplicas }}
+  maxReplicas: {{ .Values.authApi.hpa.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.authApi.hpa.targetCpuUtilization }}
+{{- end }}

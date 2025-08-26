@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "termdo.componentName" (dict "root" . "component" "db") }}
+spec:
+  selector:
+    {{- include "termdo.selectorLabels" (dict "root" . "component" "db") | nindent 4 }}
+  ports:
+    - name: postgres
+      protocol: TCP
+      port: 5432
+      targetPort: 5432
+      targetPort: 5432

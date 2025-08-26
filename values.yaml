@@ -1,8 +1,11 @@
 harbor:
+  host: harbor.example.com
   secret:
-    host: harbor.example.com
     name: robot$termdo+robot
     token: your_robot_account_token
+
+ingress:
+  enabled: false
 
 db:
   image:
@@ -53,9 +56,10 @@ gatewayApi:
     minReplicas: 1
     maxReplicas: 10
     targetCpuUtilization: 80
+  service:
+    nodePort: 30003
   env:
     appPort: 3000
-    cookieIsSecure: false
 
 web:
   image:
@@ -67,5 +71,7 @@ web:
     minReplicas: 1
     maxReplicas: 10
     targetCpuUtilization: 80
+  service:
+    nodePort: 30008
   env:
     appPort: 8000

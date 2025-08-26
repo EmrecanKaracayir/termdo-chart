@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-api-deployment
+spec:
+  replicas: {{ .Values.gatewayApi.replicas }}
+  selector:
+    matchLabels:
+      app: gateway-api
+  template:
+    metadata:
+      labels:
+        app: gateway-api
+    spec:
+      imagePullSecrets:
+        - name: harbor-secret
+      containers:
+        - name: gateway-api-container
+          image: "{{ .Values.harbor.host }}/{{ .Values.gatewayApi.image.repository }}:{{ .Values.gatewayApi.image.tag }}"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: {{ .Values.gatewayApi.env.appPort }}
+          env:
+            - name: APP_HOST
+              value: gateway-api
+            - name: APP_PORT
+              value: "{{ .Values.gatewayApi.env.appPort }}"
+            - name: COOKIE_IS_SECURE
+              value: "{{ .Values.ingress.enabled }}"
+            - name: AUTH_API_PROTOCOL
+              value: "http"
+            - name: AUTH_API_HOST
+              value: auth-api
+            - name: AUTH_API_PORT
+              value: "{{ .Values.authApi.env.appPort }}"
+            - name: TASKS_API_PROTOCOL
+              value: "http"
+            - name: TASKS_API_HOST
+              value: tasks-api
+            - name: TASKS_API_PORT
+              value: "{{ .Values.tasksApi.env.appPort }}"

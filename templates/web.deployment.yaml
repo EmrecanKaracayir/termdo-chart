@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-deployment
+spec:
+  replicas: {{ .Values.web.replicas }}
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      imagePullSecrets:
+        - name: harbor-secret
+      containers:
+        - name: web-container
+          image: "{{ .Values.harbor.host }}/{{ .Values.web.image.repository }}:{{ .Values.web.image.tag }}"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: {{ .Values.web.env.appPort }}
+          env:
+            - name: APP_PORT
+              value: "{{ .Values.web.env.appPort }}"
+            - name: API_HOST
+              value: gateway-api
+            - name: API_PORT
+              value: "{{ .Values.gatewayApi.env.appPort }}"

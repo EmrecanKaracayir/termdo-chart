@@ -1,6 +1,7 @@
 apiVersion: v2
-name: termdo-chart
+name: termdo
 version: "1.0.0"
+kubeVersion: ">=1.23.0"
 description: Helm chart to deploy Termdo application on Kubernetes
 type: application
 home: https://github.com/termdo-inc

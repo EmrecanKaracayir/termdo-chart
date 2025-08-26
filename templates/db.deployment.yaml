@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "termdo.componentName" (dict "root" . "component" "db") }}
+  labels:
+    {{- include "termdo.labels" (dict "root" . "component" "db" "partOf" "termdo") | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "termdo.selectorLabels" (dict "root" . "component" "db") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "termdo.selectorLabels" (dict "root" . "component" "db") | nindent 8 }}
+        {{- include "termdo.labels" (dict "root" . "component" "db" "partOf" "termdo") | nindent 8 }}
+    spec:
+      imagePullSecrets:
+        - name: harbor-secret
+      containers:
+        - name: db
+          image: "{{ .Values.harbor.host }}/{{ .Values.db.image.repository }}:{{ .Values.db.image.tag }}"
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - secretRef:
+                name: {{ include "termdo.componentName" (dict "root" . "component" "db") }}-secret
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: db-data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: db-data
+          persistentVolumeClaim:
+            claimName: {{ include "termdo.componentName" (dict "root" . "component" "db") }}-pvc

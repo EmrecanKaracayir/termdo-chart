@@ -2,9 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: tasks-api-deployment
-  namespace: {{- .Release.Namespace -}}
 spec:
-  replicas: {{- .Values.tasksApi.replicas -}}
+  replicas: {{ .Values.tasksApi.replicas }}
   selector:
     matchLabels:
       app: tasks-api
@@ -17,29 +16,29 @@ spec:
         - name: harbor-secret
       containers:
         - name: tasks-api-container
-          image: "{{- .Values.harbor.secret.host -}}/{{- .Values.tasksApi.image.repository -}}:{{- .Values.tasksApi.image.tag -}}"
+          image: "{{ .Values.harbor.host }}/{{ .Values.tasksApi.image.repository }}:{{ .Values.tasksApi.image.tag }}"
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: {{- .Values.tasksApi.env.appPort -}}
+            - containerPort: {{ .Values.tasksApi.env.appPort }}
           env:
             - name: APP_PORT
-              value: "{{- .Values.tasksApi.env.appPort -}}"
+              value: "{{ .Values.tasksApi.env.appPort }}"
             - name: DB_HOST
-              value: db-service
+              value: "{{ include \"termdo.componentName\" (dict \"root\" . \"component\" \"db\") }}"
             - name: DB_PORT
               value: "5432"
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
-                  name: db-secret
+                  name: {{ include "termdo.componentName" (dict "root" . "component" "db") }}-secret
                   key: POSTGRES_USER
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: db-secret
+                  name: {{ include "termdo.componentName" (dict "root" . "component" "db") }}-secret
                   key: POSTGRES_PASSWORD
             - name: DB_NAME
               valueFrom:
                 secretKeyRef:
-                  name: db-secret
+                  name: {{ include "termdo.componentName" (dict "root" . "component" "db") }}-secret
                   key: POSTGRES_DB

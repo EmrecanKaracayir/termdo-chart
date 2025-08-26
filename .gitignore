@@ -2,6 +2,14 @@
 
 # >-----< INCLUDES >-----< #
 
+# [+]: Git files
+!.gitignore
+
+# [+]: Repo files
+!CHANGELOG.md
+!LICENSE.md
+!README.md
+
 # [+]: Template files
 !templates/
 !templates/**
@@ -10,6 +18,9 @@
 !.helmignore
 !Chart.yaml
 !values.yaml
+
+# [+]: Config files
+!.editorconfig
 
 # >-----< EXCLUDES >-----< #
 
