@@ -20,6 +20,13 @@ spec:
         - name: tasks-api-container
           image: "{{ .Values.harbor.host }}/{{ .Values.tasksApi.image.repository }}:{{ .Values.tasksApi.image.tag }}"
           imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: {{ .Values.tasksApi.resources.requests.cpu }}
+              memory: {{ .Values.tasksApi.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.tasksApi.resources.limits.cpu }}
+              memory: {{ .Values.tasksApi.resources.limits.memory }}
           ports:
             - containerPort: {{ .Values.tasksApi.env.appPort }}
           env:
