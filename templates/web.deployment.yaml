@@ -20,6 +20,13 @@ spec:
         - name: web-container
           image: "{{ .Values.harbor.host }}/{{ .Values.web.image.repository }}:{{ .Values.web.image.tag }}"
           imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: {{ .Values.web.resources.requests.cpu }}
+              memory: {{ .Values.web.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.web.resources.limits.cpu }}
+              memory: {{ .Values.web.resources.limits.memory }}
           ports:
             - containerPort: {{ .Values.web.env.appPort }}
           env:
