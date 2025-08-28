@@ -20,6 +20,13 @@ spec:
         - name: auth-api-container
           image: "{{ .Values.harbor.host }}/{{ .Values.authApi.image.repository }}:{{ .Values.authApi.image.tag }}"
           imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: {{ .Values.authApi.resources.requests.cpu }}
+              memory: {{ .Values.authApi.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.authApi.resources.limits.cpu }}
+              memory: {{ .Values.authApi.resources.limits.memory }}
           ports:
             - containerPort: {{ .Values.authApi.env.appPort }}
           env:
