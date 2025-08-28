@@ -20,6 +20,13 @@ spec:
         - name: gateway-api-container
           image: "{{ .Values.harbor.host }}/{{ .Values.gatewayApi.image.repository }}:{{ .Values.gatewayApi.image.tag }}"
           imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: {{ .Values.gatewayApi.resources.requests.cpu }}
+              memory: {{ .Values.gatewayApi.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.gatewayApi.resources.limits.cpu }}
+              memory: {{ .Values.gatewayApi.resources.limits.memory }}
           ports:
             - containerPort: {{ .Values.gatewayApi.env.appPort }}
           env:
