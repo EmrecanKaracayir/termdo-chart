@@ -1,7 +1,7 @@
 harbor:
-  host: harbor.example.com
+  host: your_harbor_registry_host
   secret:
-    name: robot$termdo+robot
+    name: your_robot_account_name
     token: your_robot_account_token
 
 ingress:
@@ -14,9 +14,9 @@ db:
   pvc:
     storage: 5Gi
   secret:
-    user: termdo_user
-    password: termdo_password
-    db: termdo_db
+    user: your_database_user
+    password: your_database_password
+    db: your_database_name
 
 authApi:
   image:
