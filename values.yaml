@@ -102,4 +102,4 @@ web:
   service:
     nodePort: 30008
   env:
-    appPort: 8000
+    appPort: 80
