@@ -18,7 +18,7 @@ spec:
         - name: harbor-secret
       containers:
         - name: web-container
-          image: "{{ .Values.harbor.host }}/{{ .Values.web.image.repository }}:{{ .Values.web.image.tag }}"
+          image: "{{ .Values.harbor.host }}{{ .Values.harbor.project }}/{{ .Values.web.image.name }}:{{ .Values.web.image.tag }}"
           imagePullPolicy: IfNotPresent
           resources:
             requests:

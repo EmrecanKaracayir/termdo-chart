@@ -1,15 +1,16 @@
 harbor:
   host: your_harbor_registry_host
+  project: your_harbor_project_name
   secret:
-    name: your_robot_account_name
-    token: your_robot_account_token
+    name: your_harbor_robot_account_name
+    token: your_harbor_robot_account_token
 
 ingress:
   enabled: false
 
 db:
   image:
-    repository: termdo/db
+    name: db
     tag: "1.0.0"
   pvc:
     storage: 5Gi
@@ -20,7 +21,7 @@ db:
 
 authApi:
   image:
-    repository: termdo/auth-api
+    name: auth-api
     tag: "1.0.0"
   resources:
     requests:
@@ -42,7 +43,7 @@ authApi:
 
 tasksApi:
   image:
-    repository: termdo/tasks-api
+    name: tasks-api
     tag: "1.0.0"
   resources:
     requests:
@@ -62,7 +63,7 @@ tasksApi:
 
 gatewayApi:
   image:
-    repository: termdo/gateway-api
+    name: gateway-api
     tag: "1.0.0"
   resources:
     requests:
@@ -84,7 +85,7 @@ gatewayApi:
 
 web:
   image:
-    repository: termdo/web
+    name: web
     tag: "1.0.0"
   resources:
     requests:

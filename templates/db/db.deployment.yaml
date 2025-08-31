@@ -16,7 +16,7 @@ spec:
         - name: harbor-secret
       containers:
         - name: db
-          image: "{{ .Values.harbor.host }}/{{ .Values.db.image.repository }}:{{ .Values.db.image.tag }}"
+          image: "{{ .Values.harbor.host }}/{{ .Values.harbor.project }}/{{ .Values.db.image.name }}:{{ .Values.db.image.tag }}"
           imagePullPolicy: IfNotPresent
           envFrom:
             - secretRef:

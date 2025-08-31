@@ -1,42 +1,37 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: auth-api-deployment
+  name: tasks-api-deployment
 spec:
-  {{- if not .Values.authApi.hpa.enabled }}
-  replicas: {{ .Values.authApi.replicas }}
+  {{- if not .Values.tasksApi.hpa.enabled }}
+  replicas: {{ .Values.tasksApi.replicas }}
   {{- end }}
   selector:
     matchLabels:
-      app: auth-api
+      app: tasks-api
   template:
     metadata:
       labels:
-        app: auth-api
+        app: tasks-api
     spec:
       imagePullSecrets:
         - name: harbor-secret
       containers:
-        - name: auth-api-container
-          image: "{{ .Values.harbor.host }}/{{ .Values.authApi.image.repository }}:{{ .Values.authApi.image.tag }}"
+        - name: tasks-api-container
+          image: "{{ .Values.harbor.host }}/{{ .Values.harbor.project }}/{{ .Values.tasksApi.image.name }}:{{ .Values.tasksApi.image.tag }}"
           imagePullPolicy: IfNotPresent
           resources:
             requests:
-              cpu: {{ .Values.authApi.resources.requests.cpu }}
-              memory: {{ .Values.authApi.resources.requests.memory }}
+              cpu: {{ .Values.tasksApi.resources.requests.cpu }}
+              memory: {{ .Values.tasksApi.resources.requests.memory }}
             limits:
-              cpu: {{ .Values.authApi.resources.limits.cpu }}
-              memory: {{ .Values.authApi.resources.limits.memory }}
+              cpu: {{ .Values.tasksApi.resources.limits.cpu }}
+              memory: {{ .Values.tasksApi.resources.limits.memory }}
           ports:
-            - containerPort: {{ .Values.authApi.env.appPort }}
+            - containerPort: {{ .Values.tasksApi.env.appPort }}
           env:
             - name: APP_PORT
-              value: "{{ .Values.authApi.env.appPort }}"
-            - name: APP_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: auth-api-secret
-                  key: APP_SECRET
+              value: "{{ .Values.tasksApi.env.appPort }}"
             - name: DB_HOST
               value: db
             - name: DB_PORT
