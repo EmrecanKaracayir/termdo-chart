@@ -1,3 +1,5 @@
+environment: dev/test/prod
+
 harbor:
   host: your_harbor_registry_host
   project: your_harbor_project_name
