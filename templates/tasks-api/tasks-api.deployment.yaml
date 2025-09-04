@@ -18,7 +18,7 @@ spec:
         - name: harbor-secret
       containers:
         - name: tasks-api-container
-          image: "{{ .Values.harbor.host }}/{{ .Values.harbor.project }}-{{ .Values.environment }}/{{ .Values.tasksApi.image.repository }}:{{ .Values.tasksApi.image.tag }}"
+          image: "{{ .Values.harbor.host }}/{{ .Values.project.name }}-{{ .Values.project.env }}/{{ .Values.tasksApi.image.repository }}:{{ .Values.tasksApi.image.tag }}"
           imagePullPolicy: IfNotPresent
           resources:
             requests:
