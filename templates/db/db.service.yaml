@@ -5,7 +5,7 @@ metadata:
 spec:
   selector:
     app: db
-  type: ClusterIP
+  type: NodePort
   ports:
     - name: postgres
       protocol: TCP
