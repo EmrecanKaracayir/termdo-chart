@@ -16,7 +16,9 @@ db:
     repository: db
     tag: "1.0.0"
   pvc:
-    storage: 5Gi
+    storage: 2Gi
+  service:
+    nodePort: 30001
   secret:
     user: your_database_user
     password: your_database_password
