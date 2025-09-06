@@ -13,8 +13,8 @@ ingress:
 
 db:
   image:
-    repository: db
-    tag: "1.0.0"
+    name: your_database_image_name
+    tag: your_database_image_tag
   pvc:
     storage: 2Gi
   service:
@@ -26,8 +26,8 @@ db:
 
 authApi:
   image:
-    repository: auth-api
-    tag: "1.0.0"
+    name: your_auth_api_image_name
+    tag: your_auth_api_image_tag
   resources:
     requests:
       cpu: 200m
@@ -48,8 +48,8 @@ authApi:
 
 tasksApi:
   image:
-    repository: tasks-api
-    tag: "1.0.0"
+    name: your_tasks_api_image_name
+    tag: your_tasks_api_image_tag
   resources:
     requests:
       cpu: 200m
@@ -68,8 +68,8 @@ tasksApi:
 
 gatewayApi:
   image:
-    repository: gateway-api
-    tag: "1.0.0"
+    name: your_gateway_api_image_name
+    tag: your_gateway_api_image_tag
   resources:
     requests:
       cpu: 100m
@@ -90,8 +90,8 @@ gatewayApi:
 
 web:
   image:
-    repository: web
-    tag: "1.0.0"
+    name: your_web_image_name
+    tag: your_web_image_tag
   resources:
     requests:
       cpu: 50m

@@ -18,7 +18,7 @@ spec:
         - name: harbor-secret
       containers:
         - name: auth-api-container
-          image: "{{ .Values.harbor.host }}/{{ .Values.project.name }}-{{ .Values.project.env }}/{{ .Values.authApi.image.repository }}:{{ .Values.authApi.image.tag }}"
+          image: "{{ .Values.authApi.image.name }}:{{ .Values.authApi.image.tag }}"
           imagePullPolicy: IfNotPresent
           resources:
             requests:

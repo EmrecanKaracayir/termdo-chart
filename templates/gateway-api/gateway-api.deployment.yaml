@@ -18,7 +18,7 @@ spec:
         - name: harbor-secret
       containers:
         - name: gateway-api-container
-          image: "{{ .Values.harbor.host }}/{{ .Values.project.name }}-{{ .Values.project.env }}/{{ .Values.gatewayApi.image.repository }}:{{ .Values.gatewayApi.image.tag }}"
+          image: "{{ .Values.gatewayApi.image.name }}:{{ .Values.gatewayApi.image.tag }}"
           imagePullPolicy: IfNotPresent
           resources:
             requests:
