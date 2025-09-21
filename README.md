@@ -1,284 +1,150 @@
 # Termdo Helm Chart
 
-A Helm chart for deploying the Termdo application on Kubernetes. This chart includes a complete microservices architecture with database, authentication API, tasks API, gateway API, and web frontend.
+This chart deploys the Termdo application suite—database, backend services, and web frontend—onto a Kubernetes cluster. It packages opinionated defaults for container images hosted in Harbor, horizontal pod autoscaling toggles, and NodePort exposure for public-facing services.
+
+## Features
+
+- Creates a Harbor-backed image pull secret shared by all workloads.
+- Provisions a PostgreSQL-compatible database with persistent storage.
+- Deploys the Auth, Tasks, and Gateway APIs with consistent resource profiles and optional HPAs.
+- Serves the Termdo web client and exposes both the web UI and gateway via NodePort.
+- Wires service-to-service environment variables so the components work together out of the box.
+
+## Component Overview
+
+| Component   | Description                                                                                                      |
+| ----------- | ---------------------------------------------------------------------------------------------------------------- |
+| `db`        | Stateful database Deployment with PVC-backed storage and a `ClusterIP` + NodePort service.                       |
+| `auth-api`  | Manages authentication; pulls DB credentials from `db-secret` and optional JWT secret from `auth-api-secret`.    |
+| `tasks-api` | Provides task-related APIs; reuses DB credentials and mirrors auth-api resource settings.                        |
+| `gateway`   | BFF layer that fronts the APIs; exposes a NodePort and forwards to Auth & Tasks services.                        |
+| `web`       | Static web frontend; talks to the gateway service; exposed via NodePort.                                         |
 
 ## Prerequisites
 
-- Kubernetes 1.23.0+
-- Helm 3.x
-- A Harbor registry for container images
+- Kubernetes cluster v1.23 or later.
+- Helm 3.9+ (Helm 3 is required; no server-side `tiller` components).
+- Pull credentials for the Harbor registry containing Termdo images.
+- Cluster access that permits NodePort services (or plan to adjust service manifests).
 
-## Architecture
+## Quick Start
 
-The Termdo application consists of the following components:
-
-- **Database (PostgreSQL)**: Persistent database for storing application data
-- **Auth API**: Authentication service handling user authentication and JWT tokens
-- **Tasks API**: Service for managing tasks and business logic
-- **Gateway API**: API gateway that routes requests to appropriate services
-- **Web**: Frontend application serving the user interface
-
-## Installation
-
-### 1. Add Harbor Registry Credentials
-
-Before installing, update the Harbor registry configuration in [`values.yaml`](values.yaml):
-
-```yaml
-harbor:
-  host: your-harbor-registry.com
-  secret:
-    name: your-robot-account-name
-    token: your-robot-account-token
-```
-
-### 2. Configure Application Secrets
-
-Update the application secrets in [`values.yaml`](values.yaml):
-
-```yaml
-db:
-  secret:
-    user: your_db_user
-    password: your_secure_db_password
-    db: your_database_name
-
-authApi:
-  secret:
-    jwt: your_jwt_secret_key
-```
-
-### 3. Install the Chart
-
-```bash
-# Install with default values
-helm install termdo .
-
-# Install with custom values file
-helm install termdo . -f custom-values.yaml
-
-# Install in a specific namespace
-helm install termdo . --namespace termdo --create-namespace
-```
+1. Copy the default values for customization:
+   ```bash
+   cp values.yaml my-values.yaml
+   ```
+2. Set the Harbor host/credentials and point each image to the desired tags in `my-values.yaml`.
+3. Install the release (namespaced install is recommended):
+   ```bash
+   helm install termdo . -f my-values.yaml --namespace termdo --create-namespace
+   ```
+4. Validate the rendered manifests before installation if desired:
+   ```bash
+   helm lint .
+   helm template termdo . -f my-values.yaml
+   ```
 
 ## Configuration
 
-### Global Configuration
+### Global & Registry
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `harbor.host` | Harbor registry hostname | `harbor.example.com` |
-| `harbor.secret.name` | Harbor robot account name | `robot$termdo+robot` |
-| `harbor.secret.token` | Harbor robot account token | `your_robot_account_token` |
-| `ingress.enabled` | Enable ingress for external access | `false` |
+| Key                    | Description                                                                                   | Default                 |
+| ---------------------- | --------------------------------------------------------------------------------------------- | ----------------------- |
+| `ingress.enabled`      | When `true`, the gateway sets cookies as secure; no ingress resource is created automatically. | `false`                 |
+| `harbor.host`          | Harbor registry hostname used to build the `harbor-secret`.                                  | `your_harbor_registry_host` |
+| `harbor.secret.name`   | Harbor robot account username.                                                                | `your_harbor_robot_account_name` |
+| `harbor.secret.token`  | Harbor robot account token (stored base64-encoded in the secret).                             | `your_harbor_robot_account_token` |
 
-### Database Configuration
+### Database (`db`)
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `db.image.repository` | Database image repository | `termdo/db` |
-| `db.image.tag` | Database image tag | `1.0.0` |
-| `db.pvc.storage` | Persistent volume size | `5Gi` |
-| `db.secret.user` | Database username | `termdo_user` |
-| `db.secret.password` | Database password | `termdo_password` |
-| `db.secret.db` | Database name | `termdo_db` |
+| Key                       | Description                                                     | Default                  |
+| ------------------------- | --------------------------------------------------------------- | ------------------------ |
+| `db.image.name`           | Database image repository (PostgreSQL-compatible).             | `your_database_image_name` |
+| `db.image.tag`            | Image tag.                                                     | `your_database_image_tag` |
+| `db.pvc.storage`          | PersistentVolumeClaim request size.                           | `2Gi`                    |
+| `db.service.nodePort`     | NodePort exposing Postgres externally; adjust to fit cluster.  | `30001`                  |
+| `db.secret.user`          | Database username (stored in `db-secret`).                     | `your_database_user`     |
+| `db.secret.password`      | Database password.                                             | `your_database_password` |
+| `db.secret.db`            | Default database name.                                         | `your_database_name`     |
 
-### Auth API Configuration
+### Auth API (`authApi`)
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `authApi.image.repository` | Auth API image repository | `termdo/auth-api` |
-| `authApi.image.tag` | Auth API image tag | `1.0.0` |
-| `authApi.replicas` | Number of replicas | `1` |
-| `authApi.resources.requests.cpu` | CPU request | `200m` |
-| `authApi.resources.requests.memory` | Memory request | `256Mi` |
-| `authApi.resources.limits.cpu` | CPU limit | `400m` |
-| `authApi.resources.limits.memory` | Memory limit | `512Mi` |
-| `authApi.env.appPort` | Application port | `3001` |
-| `authApi.secret.jwt` | JWT secret key | `your_auth_api_app_secret` |
+| Key                                 | Description                                                                | Default                          |
+| ----------------------------------- | -------------------------------------------------------------------------- | -------------------------------- |
+| `authApi.image.name` / `tag`        | Container image reference.                                                | `your_auth_api_image_*`          |
+| `authApi.resources.requests/limits` | CPU & memory reservations.                                                | `200m/256Mi` requests, `400m/512Mi` limits |
+| `authApi.replicas`                  | Replica count when HPA is disabled.                                       | `1`                              |
+| `authApi.hpa.enabled`               | Enable HorizontalPodAutoscaler; disables static `replicas` when true.     | `false`                          |
+| `authApi.hpa.minReplicas`           | Minimum pods when HPA enabled.                                            | `1`                              |
+| `authApi.hpa.maxReplicas`           | Maximum pods when HPA enabled.                                            | `10`                             |
+| `authApi.hpa.targetCpuUtilization`  | Target CPU utilization percentage.                                        | `80`                             |
+| `authApi.env.appPort`               | Container port & service port.                                            | `3001`                           |
+| `authApi.secret.jwt`                | JWT/APP secret, base64-encoded into `auth-api-secret`.                    | `your_auth_api_app_secret`       |
 
-### Tasks API Configuration
+### Tasks API (`tasksApi`)
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `tasksApi.image.repository` | Tasks API image repository | `termdo/tasks-api` |
-| `tasksApi.image.tag` | Tasks API image tag | `1.0.0` |
-| `tasksApi.replicas` | Number of replicas | `1` |
-| `tasksApi.resources.requests.cpu` | CPU request | `200m` |
-| `tasksApi.resources.requests.memory` | Memory request | `256Mi` |
-| `tasksApi.resources.limits.cpu` | CPU limit | `400m` |
-| `tasksApi.resources.limits.memory` | Memory limit | `512Mi` |
-| `tasksApi.env.appPort` | Application port | `3002` |
+Mirrors Auth API settings with its own image and port:
 
-### Gateway API Configuration
+| Key                                | Description                                           | Default                          |
+| ---------------------------------- | ----------------------------------------------------- | -------------------------------- |
+| `tasksApi.image.name` / `tag`      | Container image reference.                            | `your_tasks_api_image_*`         |
+| `tasksApi.resources.*`            | CPU/memory requests & limits.                         | `200m/256Mi`, `400m/512Mi`       |
+| `tasksApi.replicas`               | Static replicas when HPA disabled.                    | `1`                              |
+| `tasksApi.hpa.*`                  | HPA toggle and scaling parameters.                    | Disabled / `1-10` / `80`         |
+| `tasksApi.env.appPort`            | Container and service port.                           | `3002`                           |
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `gatewayApi.image.repository` | Gateway API image repository | `termdo/gateway-api` |
-| `gatewayApi.image.tag` | Gateway API image tag | `1.0.0` |
-| `gatewayApi.replicas` | Number of replicas | `1` |
-| `gatewayApi.resources.requests.cpu` | CPU request | `100m` |
-| `gatewayApi.resources.requests.memory` | Memory request | `128Mi` |
-| `gatewayApi.resources.limits.cpu` | CPU limit | `200m` |
-| `gatewayApi.resources.limits.memory` | Memory limit | `256Mi` |
-| `gatewayApi.service.nodePort` | NodePort for external access | `30003` |
-| `gatewayApi.env.appPort` | Application port | `3000` |
+### Gateway API (`gatewayApi`)
 
-### Web Configuration
+| Key                                   | Description                                                         | Default                          |
+| ------------------------------------- | ------------------------------------------------------------------- | -------------------------------- |
+| `gatewayApi.image.name` / `tag`       | Gateway container image.                                            | `your_gateway_api_image_*`       |
+| `gatewayApi.resources.*`              | Resource requests/limits.                                           | `100m/128Mi`, `200m/256Mi`       |
+| `gatewayApi.replicas`                 | Replica count when HPA disabled.                                    | `1`                              |
+| `gatewayApi.hpa.*`                    | HPA toggle & parameters.                                            | Disabled / `1-10` / `80`         |
+| `gatewayApi.env.appPort`              | Gateway container/service port.                                     | `3000`                           |
+| `gatewayApi.service.nodePort`         | NodePort exposed outside the cluster; adjust to avoid conflicts.    | `30003`                          |
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `web.image.repository` | Web image repository | `termdo/web` |
-| `web.image.tag` | Web image tag | `1.0.0` |
-| `web.replicas` | Number of replicas | `1` |
-| `web.resources.requests.cpu` | CPU request | `50m` |
-| `web.resources.requests.memory` | Memory request | `64Mi` |
-| `web.resources.limits.cpu` | CPU limit | `200m` |
-| `web.resources.limits.memory` | Memory limit | `256Mi` |
-| `web.service.nodePort` | NodePort for external access | `30008` |
-| `web.env.appPort` | Application port | `80` |
+The gateway Deployment also consumes:
+- `AUTH_API_*` env vars pointing to the Auth API service.
+- `TASKS_API_*` env vars pointing to the Tasks API service.
+- `COOKIE_IS_SECURE` mirroring `ingress.enabled`.
 
-## Auto-scaling
+### Web Frontend (`web`)
 
-All application components support Horizontal Pod Autoscaler (HPA). To enable auto-scaling:
+| Key                               | Description                                              | Default                     |
+| --------------------------------- | -------------------------------------------------------- | --------------------------- |
+| `web.image.name` / `tag`          | Static site/container image.                             | `your_web_image_*`          |
+| `web.resources.*`                 | CPU/memory requests and limits.                          | `50m/64Mi`, `200m/256Mi`    |
+| `web.replicas`                    | Static replica count when HPA disabled.                  | `1`                         |
+| `web.hpa.*`                       | HorizontalPodAutoscaler configuration.                   | Disabled / `1-10` / `80`    |
+| `web.env.appPort`                 | Container/service port.                                  | `80`                        |
+| `web.service.nodePort`            | NodePort exposed externally.                             | `30008`                     |
 
-```yaml
-authApi:
-  hpa:
-    enabled: true
-    minReplicas: 2
-    maxReplicas: 10
-    targetCpuUtilization: 70
+## Secrets & Persistence
 
-tasksApi:
-  hpa:
-    enabled: true
-    minReplicas: 2
-    maxReplicas: 10
-    targetCpuUtilization: 70
+- `harbor-secret` (Docker config JSON) is rendered from `harbor.*` values and used by all Deployments via `imagePullSecrets`.
+- `db-secret` stores database credentials; referenced by DB, Auth API, and Tasks API Deployments.
+- `auth-api-secret` stores the JWT/APP secret.
+- The database PVC (`db-pvc`) requests the `db.pvc.storage` capacity with `ReadWriteOnce`.
 
-gatewayApi:
-  hpa:
-    enabled: true
-    minReplicas: 2
-    maxReplicas: 10
-    targetCpuUtilization: 70
+## Operations
 
-web:
-  hpa:
-    enabled: true
-    minReplicas: 2
-    maxReplicas: 10
-    targetCpuUtilization: 70
-```
+- Upgrade:
+  ```bash
+  helm upgrade termdo . -f my-values.yaml --namespace termdo
+  ```
+- Uninstall:
+  ```bash
+  helm uninstall termdo --namespace termdo
+  ```
+  Consider manually deleting the PVC if you need to drop persisted data.
 
-## Services and Networking
+## Development Tips
 
-### Internal Services
-
-- **Database**: ClusterIP service on port 5432
-- **Auth API**: ClusterIP service on port 3001
-- **Tasks API**: ClusterIP service on port 3002
-
-### External Services
-
-- **Gateway API**: NodePort service on port 30003
-- **Web**: NodePort service on port 30008
-
-### Service Dependencies
-
-```
-Web (80) => Gateway API (3000) => Auth API (3001)  => Database (5432)
-                               => Tasks API (3002) =>
-```
-
-## Storage
-
-The database uses a PersistentVolumeClaim for data persistence:
-
-- **PVC Name**: `db-pvc`
-- **Access Mode**: `ReadWriteOnce`
-- **Default Size**: `5Gi`
-- **Mount Path**: `/var/lib/postgresql/data`
-
-## Secrets Management
-
-The chart creates and manages the following secrets:
-
-1. **Harbor Secret** ([`templates/harbor.secret.yaml`](templates/harbor.secret.yaml)): Docker registry authentication
-2. **Database Secret** ([`templates/db.secret.yaml`](templates/db.secret.yaml)): PostgreSQL credentials
-3. **Auth API Secret** ([`templates/auth-api.secret.yaml`](templates/auth-api.secret.yaml)): JWT signing key
-
-## Upgrading
-
-To upgrade the chart:
-
-```bash
-# Upgrade with new values
-helm upgrade termdo . -f updated-values.yaml
-
-# Upgrade to a specific chart version
-helm upgrade termdo . --version 1.1.0
-```
-
-## Uninstalling
-
-To uninstall the chart:
-
-```bash
-helm uninstall termdo
-```
-
-**Note**: This will not delete the PersistentVolumeClaim. To delete it manually:
-
-```bash
-kubectl delete pvc db-pvc
-```
-
-## Troubleshooting
-
-### Common Issues
-
-1. **ImagePullBackOff**: Verify Harbor registry credentials in [`values.yaml`](values.yaml)
-2. **Database Connection Issues**: Check database service and secret configuration
-3. **Pod CrashLoopBackOff**: Review application logs and resource limits
-
-### Viewing Logs
-
-```bash
-# View logs for specific components
-kubectl logs deployment/auth-api-deployment
-kubectl logs deployment/tasks-api-deployment
-kubectl logs deployment/gateway-api-deployment
-kubectl logs deployment/web-deployment
-kubectl logs deployment/db-deployment
-```
-
-### Checking Resources
-
-```bash
-# Check all resources
-kubectl get all -l app.kubernetes.io/instance=termdo
-
-# Check persistent volumes
-kubectl get pvc
-
-# Check secrets
-kubectl get secrets
-```
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test with `helm lint` and `helm template`
-5. Submit a pull request
+- Run `helm lint .` to validate chart structure.
+- Render manifests locally with `helm template termdo . -f my-values.yaml` before applying.
+- Adjust NodePort services to `LoadBalancer` or `ClusterIP` if your environment does not permit NodePorts; this currently requires editing the templates.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
-
-## Support
-
-For support, please contact [developer@karacayir.com](mailto:developer@karacayir.com) or create an issue in the repository.
+Released under the [MIT License](LICENSE.md).

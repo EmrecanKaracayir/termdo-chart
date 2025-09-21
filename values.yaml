@@ -1,7 +1,3 @@
-project:
-  name: your_project_name
-  env: dev/test/prod
-
 harbor:
   host: your_harbor_registry_host
   secret:
